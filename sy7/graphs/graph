@@ -1,0 +1,162 @@
+//
+// Created by xiaodian& on 2022/11/8.
+//
+//图的数组表示法定义及基本操作的实现。
+//图的邻接表表示法定义及基本操作的实现。
+//写函数实现图的深度优先遍历（分别在两种结构上）
+//在邻接表上实现拓扑排序、关键路径的求法，在邻接矩阵上实现最短路经、最小生成树的求法。
+#ifndef GRAPHS_MGRAPH_H
+#define GRAPHS_MGRAPH_H
+
+#include "iostream"
+#include "vector"
+using namespace std;
+
+#define ENDLESS INT16_MAX
+#define MAX_NODE_NUM 14
+typedef char vertextype;
+typedef enum {DG, DN, UDG, UDN} graphtype;
+
+class mgraph {
+private:
+    typedef int matrix[MAX_NODE_NUM][MAX_NODE_NUM];
+
+    vertextype vexs[MAX_NODE_NUM];
+    matrix arcs;
+    int vexmun;
+    int arcnum;
+    graphtype kind;
+
+    bool visited[MAX_NODE_NUM];//用于遍历操作
+    typedef struct {
+        int last;
+        int data;
+    }fmp;//用于最小生成树
+
+
+    //深度广度优先遍历 和 最短路径的实现核心
+    void DFS_heart_G(int start);
+    void DFS_heart_N(int start);
+    void BFS_heart_G(int start);
+    void BFS_heart_N(int start);
+    void min_path_heart(int u, int v);
+
+public:
+    mgraph(graphtype k = UDG);
+
+    //深度优先 和 广度优先
+    void DFS(int start = 0);
+    void BFS(int start = 0);
+
+    //最短路径 和 基于prim算法的最小生成树
+    void min_path(int u, int v);
+    void prim(int u = 0);
+
+
+    //其他实现——输入输出 和 Floyd算法
+    void Floyd();
+
+    friend istream & operator>>(istream &, mgraph &);
+    friend ostream & operator<<(ostream &, mgraph &);
+};
+
+
+
+class algraph{
+private:
+    typedef struct node{
+        int adjvex;
+        int q;
+        node * next_adjvex;
+    }node, *pnode;//边结点
+    typedef struct vertex{
+        vertextype data;
+        int num_in;
+        pnode firstarc;
+    }vertex;//结点信息
+    vertex vexs[MAX_NODE_NUM];
+    int vexnum;
+    int arcnum;
+    graphtype kind;
+
+
+    bool visited[MAX_NODE_NUM];//用于遍历操作
+    int dist[MAX_NODE_NUM];//用于dijkstra
+    int dijk_path[MAX_NODE_NUM];//用于dijkstra
+    typedef struct{
+        int from;
+        int to;
+        int weight;
+    }edge;//用于kruskal算法
+
+    void copy(pnode &,const pnode &);
+    void destroy(pnode &);
+
+    static void fun(vertextype &){}
+
+//    一些实现的核心
+    //遍历
+    void DFS_heart(void visit(vertextype &), int start);
+    void BFS_heart(void visit(vertextype &), int start);
+    //有没有从u到v的路
+    bool link_heart(int u, int v);//基于深度优先实现的
+    //从u到v的路
+       //一条路
+    bool path_heart(int, int, int path[], int);//基于深度优先实现的
+       //所有路
+    void path_all_heart(int, int, int path[], int);//基于深度优先（+回溯）实现的
+       //最短路
+    void path_min_heart(int, int, int path[], int path_min[], int, int &);//基于深度优先实现的（最短路）
+    typedef struct {
+        int data;
+        int parent;
+    }min_path_queue;
+    void min_path_heart(int, int);//基于广度优先实现的（最短路）
+       //网中有用的权值最大路径
+    void max_path(int u, int v, int path[], int d, int time, int key[], int & len, int & max);
+
+
+
+public:
+    algraph(graphtype k = UDG);
+    algraph(const algraph &);
+    algraph & operator=(const algraph &);
+    ~algraph();
+
+    //深度优先 和 广度优先遍历
+    void DFS(void visit(vertextype &), int start = 0);
+    void BFS(void visit(vertextype &), int start = 0);
+      //这两个是对不连通的也可以完全遍历的
+    void DFS_All(void visit(vertextype &), int start = 0);
+    void BFS_All(void visit(vertextype &), int start = 0);
+
+    //拓扑排序
+    void tuopusort();
+    //关键路径
+    void critical_path(int);
+
+    //一些其他实现
+    //联通
+    bool link();//连通性检验——无向图/网的连通性，有向图网的强连通性
+    bool link(int, int);//从u到v有没有路——且基于深度优先实现的
+    bool link2(int, int);//从u到v有没有路——且基于广度优先实现的
+    //路径
+    void path(int, int);//找出一条路——且基于深度优先实现
+    void path_all(int, int);//找出所有路——基于深度优先实现
+    void path_min(int, int);//找出最短路——且基于深度优先实现
+    void min_path(int, int);//找出最短路——且基于广度优先实现
+
+    void max_path_deep(int, int);//权值最大路径——深度优先实现
+    void max_path_critical(int, int);//权值最大路径——基于关键路径求解方法，时间复杂度更好一些
+    //最小生成树
+    void prim(int);
+    void kruskal(int);
+    //单源最短路径——dijkstra算法（此处为从u到v的最短路径，其实求出了以u为起点，到其他所有联通的结点的最短路径，可以改造一下）
+    void dijkstra(int, int);
+
+    //输入输出
+    friend istream & operator>>(istream &, algraph &);
+    friend ostream & operator<<(ostream &, algraph &);
+};
+
+#endif //GRAPHS_MGRAPH_H
